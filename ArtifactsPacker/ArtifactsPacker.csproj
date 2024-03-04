@@ -18,5 +18,8 @@
     <ItemGroup>
         <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="ArtifactsPacker.Tests" />
+    </ItemGroup>
 </Project>
