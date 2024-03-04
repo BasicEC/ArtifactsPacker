@@ -5,7 +5,9 @@ namespace ArtifactsPacker.Verbs;
 [Verb("pack", HelpText = "Pack files in specified directory.")]
 public class PackVerb : IVerb
 {
-    // CommandLineParser fills this prop
-    [Option("path", Required = true, HelpText = "Path to a directory to work with")]
-    public string Path { get; set; } = null!; 
+    [Option("src", Required = true, HelpText = "Path to a directory to pack")]
+    public string Src { get; set; } = null!;
+
+    [Option("trg", Required = true, HelpText = "Path to a directory to place a result")]
+    public string Trg { get; set; } = null!;
 }

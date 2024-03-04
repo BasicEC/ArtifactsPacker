@@ -1,4 +1,5 @@
-﻿using ArtifactsPacker.Verbs;
+﻿using ArtifactsPacker.Services;
+using ArtifactsPacker.Verbs;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public class Program
         services.AddSingleton<ICommandCreator, CommandCreator>();
         services.AddSingleton<IExecutor, Executor>();
         services.AddSingleton<IVerbProcessor, VerbProcessor>();
+        services.AddSingleton<PackService>();
 
         var serviceProvider = services.BuildServiceProvider();
 

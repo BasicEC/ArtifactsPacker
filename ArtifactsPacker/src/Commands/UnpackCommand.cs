@@ -1,16 +1,24 @@
-﻿namespace ArtifactsPacker.Commands;
+﻿using ArtifactsPacker.Services;
+
+namespace ArtifactsPacker.Commands;
 
 public class UnpackCommand : ICommand
 {
-    private readonly string _path;
+    private readonly string _src;
+    private readonly string _trg;
+    private readonly PackService _packService;
 
-    public UnpackCommand(string path)
+    public UnpackCommand(string src, string trg, PackService packService)
     {
-        _path = path;
+        _src = src;
+        _trg = trg;
+        _packService = packService;
     }
 
     public void Execute()
     {
-        Console.WriteLine($"Unpack Done! ({_path})");
+        _packService.SetSourcePath(_src);
+        _packService.SetTargetPath(_trg);
+        _packService.Unpack();
     }
 }
