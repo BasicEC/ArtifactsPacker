@@ -11,9 +11,9 @@ public interface ICommandCreator
 
 public class CommandCreator : ICommandCreator
 {
-    private readonly PackService _packService;
+    private readonly IPackService _packService;
     
-    public CommandCreator(PackService packService)
+    public CommandCreator(IPackService packService)
     {
         _packService = packService;
     }

@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ArtifactsPacker.Services;
 
-public class PackService
+public class PackService : IPackService
 {
     internal const string FilesMapName = "filesMap.json";
     

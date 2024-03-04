@@ -22,7 +22,7 @@ public class Program
         services.AddSingleton<ICommandCreator, CommandCreator>();
         services.AddSingleton<IExecutor, Executor>();
         services.AddSingleton<IVerbProcessor, VerbProcessor>();
-        services.AddSingleton<PackService>();
+        services.AddSingleton<IPackService, PackService>();
 
         var serviceProvider = services.BuildServiceProvider();
 

@@ -6,9 +6,9 @@ public class UnpackCommand : ICommand
 {
     private readonly string _src;
     private readonly string _trg;
-    private readonly PackService _packService;
+    private readonly IPackService _packService;
 
-    public UnpackCommand(string src, string trg, PackService packService)
+    public UnpackCommand(string src, string trg, IPackService packService)
     {
         _src = src;
         _trg = trg;
