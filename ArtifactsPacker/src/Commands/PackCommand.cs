@@ -15,11 +15,11 @@ public class PackCommand : ICommand
         _packService = packService;
     }
 
-    public void Execute()
+    public async Task ExecuteAsync()
     {
         _packService.SetSourcePath(_src);
         _packService.SetTargetPath(_trg);
-        _packService.CalcHashes();
-        _packService.Pack();
+        await _packService.CalcHashesAsync();
+        await _packService.PackAsync();
     }
 }

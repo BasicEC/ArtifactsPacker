@@ -23,10 +23,10 @@ public class PackTest
         var service = new PackService();
         service.SetSourcePath("TestFiles/PackTestIn");
         service.SetTargetPath(OutDir.FullName);
-        service.CalcHashes();
+        service.CalcHashesAsync().GetAwaiter().GetResult();
         
         // act
-        service.Pack();
+        service.PackAsync().GetAwaiter().GetResult();
         
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToList();

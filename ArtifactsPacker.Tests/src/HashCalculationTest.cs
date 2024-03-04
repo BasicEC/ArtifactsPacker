@@ -9,7 +9,7 @@ public class HashCalculationTest
     {
         var service = new PackService();
         service.SetSourcePath("TestFiles/PackTestIn");
-        service.CalcHashes();
+        service.CalcHashesAsync().GetAwaiter().GetResult();
 
         service.Hashes.Should().NotBeEmpty();
         service.Hashes!.Count.Should().Be(2);
@@ -20,7 +20,7 @@ public class HashCalculationTest
     [Test]
     public void ThrowsIfSourceDirectoryIsNotSet()
     {
-        var action = () => new PackService().CalcHashes();
+        var action = () => new PackService().CalcHashesAsync().GetAwaiter().GetResult();
 
         action.Should().Throw<InvalidOperationException>()
             .And.Message.Should().Be("Source directory is not set");

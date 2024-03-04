@@ -33,7 +33,7 @@ public class PackService
         }
     }
 
-    public void CalcHashes()
+    public async Task CalcHashesAsync()
     {
         if (_sourceDir == null)
         {
@@ -44,9 +44,9 @@ public class PackService
         
         foreach (var file in _sourceDir.EnumerateFiles("*", SearchOption.AllDirectories))
         {
-            using var stream = file.OpenRead();
+            await using var stream = file.OpenRead();
             var md5 = MD5.Create();
-            var hash = md5.ComputeHash(stream);
+            var hash = await md5.ComputeHashAsync(stream);
             var hex = ToHex(hash);
             if (Hashes.TryGetValue(hex, out var value))
             {
@@ -59,7 +59,7 @@ public class PackService
         }
     }
     
-    public void Pack()
+    public async Task PackAsync()
     {
         if (_sourceDir == null)
         {
@@ -81,10 +81,10 @@ public class PackService
         foreach (var hash in Hashes.Keys)
         {
             var files = Hashes[hash];
-            using (var target = File.Create(Path.Combine(_targetDir.FullName, hash)))
-            using (var source = files[0].OpenRead())
+            await using (var target = File.Create(Path.Combine(_targetDir.FullName, hash)))
+            await using (var source = files[0].OpenRead())
             {
-                source.CopyTo(target);
+                await source.CopyToAsync(target);
             }
 
             var paths = new string[files.Count];
@@ -96,14 +96,14 @@ public class PackService
             filesMap[hash] = paths;
         }
 
-        using var stream = File.Create(Path.Combine(_targetDir.FullName, FilesMapName));
-        JsonSerializer.Serialize(stream, filesMap, new JsonSerializerOptions
+        await using var stream = File.Create(Path.Combine(_targetDir.FullName, FilesMapName));
+        await JsonSerializer.SerializeAsync(stream, filesMap, new JsonSerializerOptions
         {
             WriteIndented = true,
         });
     }
 
-    public void Unpack()
+    public async Task UnpackAsync()
     {
         if (_sourceDir == null)
         {
@@ -122,7 +122,7 @@ public class PackService
         }
 
         Dictionary<string, string[]>? map;
-        using (var mapFile = File.OpenRead(mapFilePath))
+        await using (var mapFile = File.OpenRead(mapFilePath))
         {
             map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapFile);
         }
@@ -136,11 +136,9 @@ public class PackService
         {
             foreach (var file in files)
             {
-                using (var src = File.OpenRead(Path.Combine(_sourceDir.FullName, hash)))
-                using (var trg = File.Create(Path.Combine(_targetDir.FullName, file)))    
-                {
-                    src.CopyTo(trg);
-                }
+                await using var src = File.OpenRead(Path.Combine(_sourceDir.FullName, hash));
+                await using var trg = File.Create(Path.Combine(_targetDir.FullName, file));
+                await src.CopyToAsync(trg);
             }
         }
     }

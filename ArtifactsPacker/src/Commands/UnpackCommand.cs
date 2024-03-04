@@ -15,10 +15,10 @@ public class UnpackCommand : ICommand
         _packService = packService;
     }
 
-    public void Execute()
+    public async Task ExecuteAsync()
     {
         _packService.SetSourcePath(_src);
         _packService.SetTargetPath(_trg);
-        _packService.Unpack();
+        await _packService.UnpackAsync();
     }
 }

@@ -5,7 +5,7 @@ namespace ArtifactsPacker;
 
 public interface IVerbProcessor
 {
-    void Process(IVerb verb);
+    Task ProcessAsync(IVerb verb);
 }
 
 public class VerbProcessor : IVerbProcessor
@@ -21,9 +21,9 @@ public class VerbProcessor : IVerbProcessor
         _logger = logger;
     }
 
-    public void Process(IVerb verb)
+    public Task ProcessAsync(IVerb verb)
     {
         var command = _commandCreator.Create(verb);
-        _executor.Execute(command);
+        return _executor.ExecuteAsync(command);
     }
 }

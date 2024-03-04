@@ -31,7 +31,7 @@ public class UnpackTest
         };
         
         // act
-        service.Unpack();
+        service.UnpackAsync().GetAwaiter().GetResult();
         
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToArray();

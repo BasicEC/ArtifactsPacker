@@ -5,7 +5,7 @@ namespace ArtifactsPacker;
 
 public interface IExecutor
 {
-    void Execute(ICommand command);
+    Task ExecuteAsync(ICommand command);
 }
 
 public class Executor : IExecutor
@@ -17,8 +17,8 @@ public class Executor : IExecutor
         _logger = logger;
     }
 
-    public void Execute(ICommand command)
+    public Task ExecuteAsync(ICommand command)
     {
-        command.Execute();
+        return command.ExecuteAsync();
     }
 }

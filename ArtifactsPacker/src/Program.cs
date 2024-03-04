@@ -9,7 +9,7 @@ namespace ArtifactsPacker;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", false, false).Build();
         var services = new ServiceCollection();
@@ -26,11 +26,11 @@ public class Program
 
         var serviceProvider = services.BuildServiceProvider();
 
-        Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
-            .WithParsed(verb =>
+        await Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
+            .WithParsedAsync(async verb =>
             {
                 var processor = serviceProvider.GetRequiredService<IVerbProcessor>();
-                processor.Process((IVerb)verb);
+                await processor.ProcessAsync((IVerb)verb);
             });
     }
 }
