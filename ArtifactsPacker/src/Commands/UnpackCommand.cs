@@ -17,8 +17,6 @@ public class UnpackCommand : ICommand
 
     public async Task ExecuteAsync()
     {
-        _packService.SetSourcePath(_src);
-        _packService.SetTargetPath(_trg);
-        await _packService.UnpackAsync();
+        await _packService.UnpackAsync(_src, _trg);
     }
 }

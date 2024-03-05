@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ArtifactsPacker.FileSystem;
 
 namespace ArtifactsPacker.Services;
 
@@ -9,60 +10,43 @@ public class PackService : IPackService
 {
     private const int MaxTasksCount = 8;
     internal const string FilesMapName = "filesMap.json";
-    
-    private DirectoryInfo? _sourceDir;
-    private DirectoryInfo? _targetDir;
+
+    private readonly IFileSystemWriter _fileSystemWriter;
+    private readonly IFileSystemReader _fileSystemReader;
+
     internal IReadOnlyDictionary<string, List<string>>? Hashes;
-    
-    public void SetSourcePath(string path)
-    {
-        var dir = new DirectoryInfo(path);
-        if (!dir.Exists)
-        {
-            throw new Exception("Directory doesn't exist");// add validation
-        }
 
-        _sourceDir = dir;
+    public PackService(IFileSystemWriter fileSystemWriter, IFileSystemReader fileSystemReader)
+    {
+        _fileSystemWriter = fileSystemWriter;
+        _fileSystemReader = fileSystemReader;
     }
 
-    public void SetTargetPath(string path)
+    public async Task CalcHashesAsync(string sourcePath)
     {
-        _targetDir = new DirectoryInfo(path);
-    
-        if (!_targetDir.Exists)
-        {
-            throw new Exception($"Directory doesn't exist: {_targetDir.FullName}");
-        }
-    }
-
-    public async Task CalcHashesAsync()
-    {
-        if (_sourceDir == null)
-        {
-            throw new InvalidOperationException("Source directory is not set");
-        }
-
         var queue = new ConcurrentQueue<(string, string)>();
         var tasks = new ConcurrentQueue<Task>();
         using var semaphore = new SemaphoreSlim(MaxTasksCount);
         var handler = new SemaphoreKeeper(semaphore);
-        foreach (var file in _sourceDir.EnumerateFiles("*", SearchOption.AllDirectories))
+        var basePathLen = sourcePath.Length + 1;
+        foreach (var file in _fileSystemReader.EnumerateFilesAllFiles(sourcePath))
         {
             using var holder = await handler.WaitAsync();
             var task = Task.Run(async () =>
             {
                 using var _ = await handler.WaitAsync();
-                await using var stream = file.OpenRead();
+                var relativePath = file[basePathLen..];
+                await using var stream = _fileSystemReader.OpenRead(sourcePath, relativePath);
                 var md5 = MD5.Create();
                 var hash = await md5.ComputeHashAsync(stream);
                 var hex = ToHex(hash);
-                queue.Enqueue((hex, file.FullName));
+                queue.Enqueue((hex, relativePath));
                 if (tasks.Count > MaxTasksCount)
                 {
                     tasks.TryDequeue(out var _);
                 }
             });
-            
+
             tasks.Enqueue(task);
         }
 
@@ -83,71 +67,33 @@ public class PackService : IPackService
 
         Hashes = hashes;
     }
-    
-    public async Task PackAsync()
+
+    public async Task PackAsync(string sourcePath, string targetPath)
     {
-        if (_sourceDir == null)
-        {
-            throw new InvalidOperationException("Source directory is not set");
-        }
-
-        if (_targetDir == null)
-        {
-            throw new InvalidOperationException("Target directory is not set");
-        }
-
         if (Hashes == null)
         {
             throw new InvalidOperationException("File hashes are not calculated");
         }
 
-        var basePathLen = _sourceDir.FullName.Length + 1;
-        var filesMap = new Dictionary<string, string[]>(Hashes.Count);
         foreach (var hash in Hashes.Keys)
         {
             var files = Hashes[hash];
-            await using (var target = File.Create(Path.Combine(_targetDir.FullName, hash)))
-            await using (var source = File.OpenRead(files[0]))
-            {
-                await source.CopyToAsync(target);
-            }
-
-            var paths = new string[files.Count];
-            for (var i = 0; i < files.Count; i++)
-            {
-                paths[i] = files[i][basePathLen..];
-            }
-
-            filesMap[hash] = paths;
+            await using var target = _fileSystemWriter.Create(targetPath, hash);
+            await using var source = _fileSystemReader.OpenRead(sourcePath, files[0]);
+            await source.CopyToAsync(target);
         }
 
-        await using var stream = File.Create(Path.Combine(_targetDir.FullName, FilesMapName));
-        await JsonSerializer.SerializeAsync(stream, filesMap, new JsonSerializerOptions
+        await using var stream = _fileSystemWriter.Create(targetPath, FilesMapName);
+        await JsonSerializer.SerializeAsync(stream, Hashes, new JsonSerializerOptions
         {
             WriteIndented = true,
         });
     }
 
-    public async Task UnpackAsync()
+    public async Task UnpackAsync(string sourcePath, string targetPath)
     {
-        if (_sourceDir == null)
-        {
-            throw new InvalidOperationException("Source directory is not set");
-        }
-
-        if (_targetDir == null)
-        {
-            throw new InvalidOperationException("Target directory is not set");
-        }
-
-        var mapFilePath = Path.Combine(_sourceDir.FullName, FilesMapName);
-        if (!File.Exists(mapFilePath))
-        {
-            throw new Exception($"{FilesMapName} is not found {mapFilePath}");
-        }
-
         Dictionary<string, string[]>? map;
-        await using (var mapFile = File.OpenRead(mapFilePath))
+        await using (var mapFile = _fileSystemReader.OpenRead(sourcePath, FilesMapName))
         {
             map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapFile);
         }
@@ -161,8 +107,8 @@ public class PackService : IPackService
         {
             foreach (var file in files)
             {
-                await using var src = File.OpenRead(Path.Combine(_sourceDir.FullName, hash));
-                await using var trg = File.Create(Path.Combine(_targetDir.FullName, file));
+                await using var src = _fileSystemReader.OpenRead(sourcePath, hash);
+                await using var trg = _fileSystemWriter.Create(targetPath, file);
                 await src.CopyToAsync(trg);
             }
         }

@@ -1,4 +1,5 @@
-﻿using ArtifactsPacker.Services;
+﻿using ArtifactsPacker.FileSystem;
+using ArtifactsPacker.Services;
 using ArtifactsPacker.Verbs;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,10 @@ public class Program
         services.AddSingleton<IExecutor, Executor>();
         services.AddSingleton<IVerbProcessor, VerbProcessor>();
         services.AddSingleton<IPackService, PackService>();
+
+        services.AddSingleton<PhysicalFileSystem>();
+        services.AddSingleton<IFileSystemReader>(provider => provider.GetRequiredService<PhysicalFileSystem>());
+        services.AddSingleton<IFileSystemWriter>(provider => provider.GetRequiredService<PhysicalFileSystem>());
 
         var serviceProvider = services.BuildServiceProvider();
 

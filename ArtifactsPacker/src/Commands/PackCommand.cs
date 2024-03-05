@@ -17,9 +17,7 @@ public class PackCommand : ICommand
 
     public async Task ExecuteAsync()
     {
-        _packService.SetSourcePath(_src);
-        _packService.SetTargetPath(_trg);
-        await _packService.CalcHashesAsync();
-        await _packService.PackAsync();
+        await _packService.CalcHashesAsync(_src);
+        await _packService.PackAsync(_src, _trg);
     }
 }

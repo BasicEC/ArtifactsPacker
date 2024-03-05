@@ -1,10 +1,13 @@
-﻿using ArtifactsPacker.Services;
+﻿using ArtifactsPacker.FileSystem;
+using ArtifactsPacker.Services;
 
 namespace ArtifactsPacker.Tests;
 
 public class PackTest
 {
     private DirectoryInfo OutDir { get; set; } = null!;
+    private IFileSystemWriter _fileSystemWriter = null!;
+    private IFileSystemReader _fileSystemReader = null!;
 
     [SetUp]
     public void SetUp()
@@ -14,19 +17,22 @@ public class PackTest
         {
             file.Delete();
         }
+        
+        var fs = new PhysicalFileSystem();
+        _fileSystemWriter = fs;
+        _fileSystemReader = fs;
     }
     
     [Test]
     public void Pack()
     {
         // arrange
-        var service = new PackService();
-        service.SetSourcePath("TestFiles/PackTestIn");
-        service.SetTargetPath(OutDir.FullName);
-        service.CalcHashesAsync().GetAwaiter().GetResult();
+        var service = new PackService(_fileSystemWriter, _fileSystemReader);
+        const string src = "TestFiles/PackTestIn";
+        service.CalcHashesAsync(src).GetAwaiter().GetResult();
         
         // act
-        service.PackAsync().GetAwaiter().GetResult();
+        service.PackAsync(src, OutDir.FullName).GetAwaiter().GetResult();
         
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToList();
