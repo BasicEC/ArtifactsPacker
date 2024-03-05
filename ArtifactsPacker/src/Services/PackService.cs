@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
@@ -6,11 +7,12 @@ namespace ArtifactsPacker.Services;
 
 public class PackService : IPackService
 {
+    private const int MaxTasksCount = 8;
     internal const string FilesMapName = "filesMap.json";
     
     private DirectoryInfo? _sourceDir;
     private DirectoryInfo? _targetDir;
-    internal Dictionary<string, List<FileInfo>>? Hashes;
+    internal IReadOnlyDictionary<string, List<string>>? Hashes;
     
     public void SetSourcePath(string path)
     {
@@ -40,23 +42,46 @@ public class PackService : IPackService
             throw new InvalidOperationException("Source directory is not set");
         }
 
-        Hashes = new Dictionary<string, List<FileInfo>>();
-        
+        var queue = new ConcurrentQueue<(string, string)>();
+        var tasks = new ConcurrentQueue<Task>();
+        using var semaphore = new SemaphoreSlim(MaxTasksCount);
+        var handler = new SemaphoreKeeper(semaphore);
         foreach (var file in _sourceDir.EnumerateFiles("*", SearchOption.AllDirectories))
         {
-            await using var stream = file.OpenRead();
-            var md5 = MD5.Create();
-            var hash = await md5.ComputeHashAsync(stream);
-            var hex = ToHex(hash);
-            if (Hashes.TryGetValue(hex, out var value))
+            using var holder = await handler.WaitAsync();
+            var task = Task.Run(async () =>
             {
-                value.Add(file);
+                using var _ = await handler.WaitAsync();
+                await using var stream = file.OpenRead();
+                var md5 = MD5.Create();
+                var hash = await md5.ComputeHashAsync(stream);
+                var hex = ToHex(hash);
+                queue.Enqueue((hex, file.FullName));
+                if (tasks.Count > MaxTasksCount)
+                {
+                    tasks.TryDequeue(out var _);
+                }
+            });
+            
+            tasks.Enqueue(task);
+        }
+
+        await Task.WhenAll(tasks);
+
+        var hashes = new Dictionary<string, List<string>>();
+        foreach (var (hex, file) in queue)
+        {
+            if (hashes.TryGetValue(hex, out var files))
+            {
+                files.Add(file);
             }
             else
             {
-                Hashes[hex] = new List<FileInfo> { file };
+                hashes[hex] = new List<string> { file };
             }
         }
+
+        Hashes = hashes;
     }
     
     public async Task PackAsync()
@@ -82,7 +107,7 @@ public class PackService : IPackService
         {
             var files = Hashes[hash];
             await using (var target = File.Create(Path.Combine(_targetDir.FullName, hash)))
-            await using (var source = files[0].OpenRead())
+            await using (var source = File.OpenRead(files[0]))
             {
                 await source.CopyToAsync(target);
             }
@@ -90,7 +115,7 @@ public class PackService : IPackService
             var paths = new string[files.Count];
             for (var i = 0; i < files.Count; i++)
             {
-                paths[i] = files[i].FullName[basePathLen..];
+                paths[i] = files[i][basePathLen..];
             }
 
             filesMap[hash] = paths;
