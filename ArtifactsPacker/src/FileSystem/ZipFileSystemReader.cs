@@ -12,7 +12,7 @@ public sealed class ZipFileSystemReader : IFileSystemReader, IDisposable
 {
     private readonly Dictionary<string, ZipArchive> _zips = new();
 
-    public IEnumerable<string> EnumerateAllFiles(string path)
+    public IEnumerable<string> EnumerateAllFiles(string path, out int basePathLength)
     {
         if (!_zips.TryGetValue(path, out var zip))
         {
@@ -20,6 +20,7 @@ public sealed class ZipFileSystemReader : IFileSystemReader, IDisposable
             _zips[path] = zip;
         }
 
+        basePathLength = path.Length;
         return zip.Entries.Select(entry => Path.Combine(path, entry.FullName));
     }
 
