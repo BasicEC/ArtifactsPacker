@@ -1,4 +1,5 @@
 ﻿using ArtifactsPacker.Commands;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 
 namespace ArtifactsPacker;
@@ -17,8 +18,15 @@ public class Executor : IExecutor
         _logger = logger;
     }
 
-    public Task ExecuteAsync(ICommand command)
+    public async Task ExecuteAsync(ICommand command)
     {
-        return command.ExecuteAsync();
+        try
+        {
+            await command.ExecuteAsync();
+        }
+        catch (ValidationException e)
+        {
+            _logger.LogError(e.Message);
+        }
     }
 }

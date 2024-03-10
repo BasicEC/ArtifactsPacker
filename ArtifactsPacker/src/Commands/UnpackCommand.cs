@@ -1,22 +1,27 @@
 ﻿using ArtifactsPacker.Services;
+using FluentValidation;
 
 namespace ArtifactsPacker.Commands;
 
 public class UnpackCommand : ICommand
 {
-    private readonly string _src;
-    private readonly string _trg;
     private readonly IPackService _packService;
+    private readonly IValidator<UnpackCommand> _validator;
+    
+    internal readonly string Src;
+    internal readonly string Trg;
 
-    public UnpackCommand(string src, string trg, IPackService packService)
+    public UnpackCommand(string src, string trg, IPackService packService, IValidator<UnpackCommand> validator)
     {
-        _src = src;
-        _trg = trg;
+        Src = src;
+        Trg = trg;
         _packService = packService;
+        _validator = validator;
     }
 
     public async Task ExecuteAsync()
     {
-        await _packService.UnpackAsync(_src, _trg);
+        await _validator.ValidateAndThrowAsync(this);
+        await _packService.UnpackAsync(Src, Trg);
     }
 }
