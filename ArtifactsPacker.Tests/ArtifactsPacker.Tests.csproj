@@ -25,4 +25,8 @@
         <Content Include="TestFiles/**/*.*" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="TestFiles\Zip\In\" />
+    </ItemGroup>
+
 </Project>

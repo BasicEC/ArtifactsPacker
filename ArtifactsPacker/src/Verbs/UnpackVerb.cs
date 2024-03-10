@@ -10,4 +10,7 @@ public class UnpackVerb : IVerb
 
     [Option("trg", Required = true, HelpText = "Path to a directory to place a result")]
     public string Trg { get; set; } = null!;
+    
+    [Option("archive", FlagCounter = true, HelpText = "Read files to unpack from an archive")]
+    public int Archive { get; set; }
 }

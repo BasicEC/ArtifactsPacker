@@ -1,29 +1,30 @@
-﻿using ArtifactsPacker.Verbs;
+﻿using ArtifactsPacker.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ArtifactsPacker;
 
 public interface IVerbProcessor
 {
-    Task ProcessAsync(IVerb verb);
+    Task ProcessAsync();
 }
 
 public class VerbProcessor : IVerbProcessor
 {
-    private readonly ICommandCreator _commandCreator;
-    private readonly IExecutor _executor;
     private readonly ILogger<VerbProcessor> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
-    public VerbProcessor(ICommandCreator commandCreator, IExecutor executor, ILogger<VerbProcessor> logger)
+    public VerbProcessor(IServiceProvider serviceProvider, ILogger<VerbProcessor> logger)
     {
-        _commandCreator = commandCreator;
-        _executor = executor;
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
-    public Task ProcessAsync(IVerb verb)
+    public async Task ProcessAsync()
     {
-        var command = _commandCreator.Create(verb);
-        return _executor.ExecuteAsync(command);
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        var executor = scope.ServiceProvider.GetRequiredService<IExecutor>();
+        var command = scope.ServiceProvider.GetRequiredService<ICommand>();
+        await executor.ExecuteAsync(command);
     }
 }

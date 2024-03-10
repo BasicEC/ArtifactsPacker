@@ -2,6 +2,6 @@
 
 public interface IFileSystemReader
 {
-    IEnumerable<string> EnumerateFilesAllFiles(string path);
+    IEnumerable<string> EnumerateAllFiles(string path);
     Stream OpenRead(string basePath, string path);
 }

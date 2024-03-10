@@ -28,8 +28,8 @@ public class PackService : IPackService
         var tasks = new ConcurrentQueue<Task>();
         using var semaphore = new SemaphoreSlim(MaxTasksCount);
         var handler = new SemaphoreKeeper(semaphore);
-        var basePathLen = sourcePath.Length + 1;
-        foreach (var file in _fileSystemReader.EnumerateFilesAllFiles(sourcePath))
+        var basePathLen = sourcePath.Length + (sourcePath.EndsWith(Path.PathSeparator) ? 0 : 1);
+        foreach (var file in _fileSystemReader.EnumerateAllFiles(sourcePath))
         {
             using var holder = await handler.WaitAsync();
             var task = Task.Run(async () =>

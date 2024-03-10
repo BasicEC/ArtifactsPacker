@@ -2,7 +2,7 @@
 
 public class PhysicalFileSystem : IFileSystemReader, IFileSystemWriter
 {
-    public IEnumerable<string> EnumerateFilesAllFiles(string path)
+    public IEnumerable<string> EnumerateAllFiles(string path)
     {
         var dir = new DirectoryInfo(path);
         return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).Select(f => f.FullName);

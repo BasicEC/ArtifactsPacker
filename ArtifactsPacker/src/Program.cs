@@ -1,6 +1,4 @@
-﻿using ArtifactsPacker.FileSystem;
-using ArtifactsPacker.Services;
-using ArtifactsPacker.Verbs;
+﻿using ArtifactsPacker.Verbs;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,34 +6,35 @@ using Microsoft.Extensions.Logging;
 
 namespace ArtifactsPacker;
 
-public class Program
+public static class Program
 {
-    public static async Task Main(string[] args)
+    public static Task Main(string[] args)
+    {
+        return Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
+            .WithParsedAsync(async option =>
+            {
+                var verb = (IVerb)option;
+                var serviceProvider = ConfigureServices(verb);
+                var processor = serviceProvider.GetRequiredService<IVerbProcessor>();
+                await processor.ProcessAsync();
+            });
+    }
+
+    private static IServiceProvider ConfigureServices(IVerb verb)
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", false, false).Build();
         var services = new ServiceCollection();
+
         services.AddLogging(builder =>
-        {
-            builder.AddConfiguration(config.GetSection("Logging"));
-            builder.AddSimpleConsole();
-        });
-        
-        services.AddSingleton<ICommandCreator, CommandCreator>();
-        services.AddSingleton<IExecutor, Executor>();
-        services.AddSingleton<IVerbProcessor, VerbProcessor>();
-        services.AddSingleton<IPackService, PackService>();
-
-        services.AddSingleton<PhysicalFileSystem>();
-        services.AddSingleton<IFileSystemReader>(provider => provider.GetRequiredService<PhysicalFileSystem>());
-        services.AddSingleton<IFileSystemWriter>(provider => provider.GetRequiredService<PhysicalFileSystem>());
-
-        var serviceProvider = services.BuildServiceProvider();
-
-        await Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
-            .WithParsedAsync(async verb =>
             {
-                var processor = serviceProvider.GetRequiredService<IVerbProcessor>();
-                await processor.ProcessAsync((IVerb)verb);
-            });
+                builder.AddConfiguration(config.GetSection("Logging"));
+                builder.AddSimpleConsole();
+            })
+            .AddSingleton<IVerbProcessor, VerbProcessor>()
+            .AddScoped<IExecutor, Executor>()
+            .AddCommand(verb)
+            ;
+
+        return services.BuildServiceProvider();
     }
 }
