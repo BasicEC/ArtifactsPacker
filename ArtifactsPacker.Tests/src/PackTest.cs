@@ -1,5 +1,6 @@
 ﻿using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArtifactsPacker.Tests;
 
@@ -27,7 +28,7 @@ public class PackTest
     public void Pack()
     {
         // arrange
-        var service = new PackService(_fileSystemWriter, _fileSystemReader);
+        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance);
         const string src = "TestFiles/PackTestIn";
         service.CalcHashesAsync(src).GetAwaiter().GetResult();
         

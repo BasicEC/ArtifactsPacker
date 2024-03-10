@@ -1,5 +1,6 @@
 ﻿using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArtifactsPacker.Tests;
 
@@ -19,7 +20,7 @@ public class HashCalculationTest
     [Test]
     public void HashesAreEqualForTheSameFiles()
     {
-        var service = new PackService(_fileSystemWriter, _fileSystemReader);
+        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance);
         service.CalcHashesAsync("TestFiles/PackTestIn").GetAwaiter().GetResult();
 
         service.Hashes.Should().NotBeEmpty();

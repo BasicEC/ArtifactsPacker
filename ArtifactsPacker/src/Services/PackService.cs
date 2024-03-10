@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using ArtifactsPacker.FileSystem;
+using Microsoft.Extensions.Logging;
 
 namespace ArtifactsPacker.Services;
 
@@ -13,17 +14,21 @@ public class PackService : IPackService
 
     private readonly IFileSystemWriter _fileSystemWriter;
     private readonly IFileSystemReader _fileSystemReader;
+    private readonly ILogger<PackService> _logger;
 
     internal IReadOnlyDictionary<string, List<string>>? Hashes;
 
-    public PackService(IFileSystemWriter fileSystemWriter, IFileSystemReader fileSystemReader)
+    public PackService(IFileSystemWriter fileSystemWriter, IFileSystemReader fileSystemReader,
+        ILogger<PackService> logger)
     {
         _fileSystemWriter = fileSystemWriter;
         _fileSystemReader = fileSystemReader;
+        _logger = logger;
     }
 
     public async Task CalcHashesAsync(string sourcePath)
     {
+        _logger.LogInformation("Start hash calculation");
         var queue = new ConcurrentQueue<(string, string)>();
         var tasks = new ConcurrentQueue<Task>();
         using var semaphore = new SemaphoreSlim(MaxTasksCount);
@@ -66,10 +71,14 @@ public class PackService : IPackService
         }
 
         Hashes = hashes;
+
+        _logger.LogInformation("Hash calculation complete");
     }
 
     public async Task PackAsync(string sourcePath, string targetPath)
     {
+        _logger.LogInformation("Start packing");
+
         if (Hashes == null)
         {
             throw new InvalidOperationException("File hashes are not calculated");
@@ -88,10 +97,14 @@ public class PackService : IPackService
         {
             WriteIndented = true,
         });
+
+        _logger.LogInformation("Packing complete");
     }
 
     public async Task UnpackAsync(string sourcePath, string targetPath)
     {
+        _logger.LogInformation("Start unpacking");
+
         Dictionary<string, string[]>? map;
         await using (var mapFile = _fileSystemReader.OpenRead(sourcePath, FilesMapName))
         {
@@ -112,6 +125,8 @@ public class PackService : IPackService
                 await src.CopyToAsync(trg);
             }
         }
+
+        _logger.LogInformation("Unpacking complete");
     }
 
     private static string ToHex(byte[] bytes)

@@ -1,5 +1,6 @@
 ﻿using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArtifactsPacker.Tests;
 
@@ -28,7 +29,7 @@ public class UnpackTest
     public void Unpack()
     {
         // arrange
-        var service = new PackService(_fileSystemWriter, _fileSystemReader);
+        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance);
         const string src = "TestFiles/UnpackTestIn";
         var expectedFiles = new Dictionary<string, string>
         {
