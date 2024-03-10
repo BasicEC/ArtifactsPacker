@@ -21,8 +21,8 @@ public class PackCommandValidator : AbstractValidator<PackCommand>
                 if (Directory.Exists(trg)) return;
                 var fullname = Path.GetFullPath(trg);
                 context.AddFailure(nameof(PackCommand.Trg), $"Target directory doesn't exist: {fullname}");
-            }).When(c => !archiveResult);
-        
+            }).When(_ => !archiveResult);
+
         RuleFor(c => c.Trg)
             .Custom((trg, context) =>
             {
@@ -36,6 +36,6 @@ public class PackCommandValidator : AbstractValidator<PackCommand>
                 var fullname = Path.GetFullPath(trg);
                 context.AddFailure(nameof(PackCommand.Trg), $"Target archive already exists: {fullname}");
             })
-            .When(c => archiveResult);
+            .When(_ => archiveResult);
     }
 }

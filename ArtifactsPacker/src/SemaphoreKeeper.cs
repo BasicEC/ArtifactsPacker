@@ -15,8 +15,5 @@ public sealed class SemaphoreKeeper : IDisposable
         return this;
     }
 
-    public void Dispose()
-    {
-        _semaphore.Release();
-    }
+    public void Dispose() => _semaphore.Release();
 }

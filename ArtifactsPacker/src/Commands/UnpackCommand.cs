@@ -7,7 +7,7 @@ public class UnpackCommand : ICommand
 {
     private readonly IPackService _packService;
     private readonly IValidator<UnpackCommand> _validator;
-    
+
     internal readonly string Src;
     internal readonly string Trg;
 

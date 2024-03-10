@@ -10,7 +10,7 @@ public class UnpackTest
     private IFileSystemWriter _fileSystemWriter = null!;
     private IFileSystemReader _fileSystemReader = null!;
 
-    
+
     [SetUp]
     public void SetUp()
     {
@@ -19,7 +19,7 @@ public class UnpackTest
         {
             file.Delete();
         }
-        
+
         var fs = new PhysicalFileSystem();
         _fileSystemWriter = fs;
         _fileSystemReader = fs;
@@ -37,10 +37,10 @@ public class UnpackTest
             { "sameHash2.txt", "08E38238-CC73-48E4-92D7-B4A079651ADE" },
             { "uniqHash.txt", "800F769F-4F0E-4E24-876D-3EE3D71B1692" },
         };
-        
+
         // act
         service.UnpackAsync(src, OutDir.FullName).GetAwaiter().GetResult();
-        
+
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToArray();
         files.Should().HaveCount(3);

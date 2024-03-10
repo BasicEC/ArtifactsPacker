@@ -6,7 +6,7 @@ public class ZipFileSystemReaderTest
 {
     private const string TestContent = "test content";
     private const string InArchive = "TestFiles/Zip/In/test.zip";
-    
+
     [Test]
     public void ArchiveIsReadCorrectly()
     {

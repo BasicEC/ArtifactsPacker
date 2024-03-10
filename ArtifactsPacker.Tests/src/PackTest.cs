@@ -18,12 +18,12 @@ public class PackTest
         {
             file.Delete();
         }
-        
+
         var fs = new PhysicalFileSystem();
         _fileSystemWriter = fs;
         _fileSystemReader = fs;
     }
-    
+
     [Test]
     public void Pack()
     {
@@ -31,10 +31,10 @@ public class PackTest
         var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance);
         const string src = "TestFiles/PackTestIn";
         service.CalcHashesAsync(src).GetAwaiter().GetResult();
-        
+
         // act
         service.PackAsync(src, OutDir.FullName).GetAwaiter().GetResult();
-        
+
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToList();
         service.Hashes.Should().NotBeNull();

@@ -8,9 +8,8 @@ namespace ArtifactsPacker;
 
 public static class Program
 {
-    public static Task Main(string[] args)
-    {
-        return Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
+    public static Task Main(string[] args) =>
+        Parser.Default.ParseArguments<PackVerb, UnpackVerb>(args)
             .WithParsedAsync(async option =>
             {
                 var verb = (IVerb)option;
@@ -18,7 +17,6 @@ public static class Program
                 var processor = serviceProvider.GetRequiredService<IVerbProcessor>();
                 await processor.ProcessAsync();
             });
-    }
 
     private static IServiceProvider ConfigureServices(IVerb verb)
     {

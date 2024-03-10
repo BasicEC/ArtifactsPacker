@@ -1,6 +1,5 @@
 ﻿using ArtifactsPacker.Commands;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace ArtifactsPacker;
 
@@ -11,12 +10,10 @@ public interface IVerbProcessor
 
 public class VerbProcessor : IVerbProcessor
 {
-    private readonly ILogger<VerbProcessor> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public VerbProcessor(IServiceProvider serviceProvider, ILogger<VerbProcessor> logger)
+    public VerbProcessor(IServiceProvider serviceProvider)
     {
-        _logger = logger;
         _serviceProvider = serviceProvider;
     }
 

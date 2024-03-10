@@ -43,16 +43,16 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     private static IServiceCollection AddUnpackCommand(this IServiceCollection services, UnpackVerb verb)
     {
-        var readFromArchive = verb.Archive > 0; 
+        var readFromArchive = verb.Archive > 0;
         services.AddScoped<ICommand>(p =>
             new UnpackCommand(verb.Src,
                 verb.Trg,
                 p.GetRequiredService<IPackService>(),
                 new UnpackCommandValidator(readFromArchive)));
-        
+
         services.AddScoped<IFileSystemWriter, PhysicalFileSystem>();
 
         if (readFromArchive)

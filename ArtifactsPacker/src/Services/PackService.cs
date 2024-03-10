@@ -93,10 +93,7 @@ public class PackService : IPackService
         }
 
         await using var stream = _fileSystemWriter.Create(targetPath, FilesMapName);
-        await JsonSerializer.SerializeAsync(stream, Hashes, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-        });
+        await JsonSerializer.SerializeAsync(stream, Hashes, new JsonSerializerOptions { WriteIndented = true, });
 
         _logger.LogInformation("Packing complete");
     }

@@ -11,7 +11,7 @@ namespace ArtifactsPacker.FileSystem;
 public sealed class ZipFileSystemReader : IFileSystemReader, IDisposable
 {
     private readonly Dictionary<string, ZipArchive> _zips = new();
-    
+
     public IEnumerable<string> EnumerateAllFiles(string path)
     {
         if (!_zips.TryGetValue(path, out var zip))
@@ -19,7 +19,7 @@ public sealed class ZipFileSystemReader : IFileSystemReader, IDisposable
             zip = ZipFile.Open(path, ZipArchiveMode.Read);
             _zips[path] = zip;
         }
-        
+
         return zip.Entries.Select(entry => Path.Combine(path, entry.FullName));
     }
 
@@ -39,7 +39,7 @@ public sealed class ZipFileSystemReader : IFileSystemReader, IDisposable
 
         return entry.Open();
     }
-    
+
     public void Dispose()
     {
         foreach (var (_, zip) in _zips)

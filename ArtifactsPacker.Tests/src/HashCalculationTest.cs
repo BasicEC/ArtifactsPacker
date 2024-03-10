@@ -16,7 +16,7 @@ public class HashCalculationTest
         _fileSystemWriter = fs;
         _fileSystemReader = fs;
     }
-    
+
     [Test]
     public void HashesAreEqualForTheSameFiles()
     {

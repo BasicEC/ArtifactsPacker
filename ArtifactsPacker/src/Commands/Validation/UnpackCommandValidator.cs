@@ -13,7 +13,7 @@ public class UnpackCommandValidator : AbstractValidator<UnpackCommand>
             var fullname = Path.GetFullPath(trg);
             context.AddFailure(nameof(UnpackCommand.Trg), $"Target directory doesn't exist: {fullname}");
         });
-        
+
         RuleFor(c => c.Src)
             .Custom((src, context) =>
             {
@@ -21,8 +21,8 @@ public class UnpackCommandValidator : AbstractValidator<UnpackCommand>
 
                 var fullname = Path.GetFullPath(src);
                 context.AddFailure(nameof(UnpackCommand.Src), $"Source directory doesn't exist: {fullname}");
-            }).When(c => !readFromArchive);
-        
+            }).When(_ => !readFromArchive);
+
         RuleFor(c => c.Src)
             .Custom((src, context) =>
             {
@@ -36,6 +36,6 @@ public class UnpackCommandValidator : AbstractValidator<UnpackCommand>
                 var fullname = Path.GetFullPath(src);
                 context.AddFailure(nameof(UnpackCommand.Src), $"Source archive doesn't exist: {fullname}");
             })
-            .When(c => readFromArchive);
+            .When(_ => readFromArchive);
     }
 }

@@ -19,7 +19,7 @@ public class ZipFileSystemWriterTest
             outFile.Delete();
         }
     }
-    
+
     [Test]
     public void ArchiveIsCreatedCorrectly()
     {
