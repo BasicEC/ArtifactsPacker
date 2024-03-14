@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using ArtifactsPacker.FileSystem;
@@ -9,7 +8,6 @@ namespace ArtifactsPacker.Services;
 
 public class PackService : IPackService
 {
-    private const int MaxTasksCount = 8;
     internal const string FilesMapName = "filesMap.json";
 
     private readonly IFileSystemWriter _fileSystemWriter;
@@ -29,36 +27,15 @@ public class PackService : IPackService
     public async Task CalcHashesAsync(string sourcePath)
     {
         _logger.LogInformation("Start hash calculation");
-        var queue = new ConcurrentQueue<(string, string)>();
-        var tasks = new ConcurrentQueue<Task>();
-        using var semaphore = new SemaphoreSlim(MaxTasksCount);
-        var handler = new SemaphoreKeeper(semaphore);
+        var hashes = new Dictionary<string, List<string>>();
         foreach (var file in _fileSystemReader.EnumerateAllFiles(sourcePath, out var basePathLen))
         {
-            using var holder = await handler.WaitAsync();
-            var task = Task.Run(async () =>
-            {
-                using var _ = await handler.WaitAsync();
-                var relativePath = file[basePathLen..];
-                await using var stream = _fileSystemReader.OpenRead(sourcePath, relativePath);
-                var md5 = MD5.Create();
-                var hash = await md5.ComputeHashAsync(stream);
-                var hex = ToHex(hash);
-                queue.Enqueue((hex, relativePath));
-                if (tasks.Count > MaxTasksCount)
-                {
-                    tasks.TryDequeue(out var _);
-                }
-            });
-
-            tasks.Enqueue(task);
-        }
-
-        await Task.WhenAll(tasks);
-
-        var hashes = new Dictionary<string, List<string>>();
-        foreach (var (hex, file) in queue)
-        {
+            var relativePath = file[basePathLen..];
+            await using var stream = _fileSystemReader.OpenRead(sourcePath, relativePath);
+            var md5 = MD5.Create();
+            var hash = await md5.ComputeHashAsync(stream);
+            var hex = ToHex(hash);
+            
             if (hashes.TryGetValue(hex, out var files))
             {
                 files.Add(file);
