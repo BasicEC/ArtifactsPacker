@@ -43,7 +43,7 @@ public class UnpackTest
 
         // assert
         var files = OutDir.EnumerateFiles("*", SearchOption.AllDirectories).ToArray();
-        files.Should().HaveCount(3);
+        files.Should().HaveCount(4);
         foreach (var file in files)
         {
             expectedFiles.TryGetValue(file.Name, out var expectedContent);
