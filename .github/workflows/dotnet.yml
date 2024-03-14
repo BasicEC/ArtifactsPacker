@@ -1,0 +1,35 @@
+﻿# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Solution tests
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test
+        run: dotnet test --logger html --results-directory TestResults
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dotnet test results
+          path: TestResults
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
