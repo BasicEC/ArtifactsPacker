@@ -34,4 +34,16 @@ public class HashCalculationTest
             filePath.Should().NotContain("PackTestIn");
         }
     }
+
+    [Test]
+    public void HashConvertsToStringCorrectly()
+    {
+        var bytes = new byte[]
+        {
+            0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78,
+            0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0,
+        };
+        var result = HexConverter.Convert(bytes);
+        result.Should().Be("0f1e2d3c4b5a69788796a5b4c3d2e1f0");
+    }
 }

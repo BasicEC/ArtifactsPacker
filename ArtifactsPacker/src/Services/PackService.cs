@@ -1,5 +1,4 @@
 ﻿using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using ArtifactsPacker.FileSystem;
 using Microsoft.Extensions.Logging;
@@ -37,7 +36,7 @@ public class PackService : IPackService
             var relativePath = file[basePathLen..];
             await using var stream = _fileSystemReader.OpenRead(sourcePath, relativePath);
             var hash = await _hashAlgorithm.ComputeHashAsync(stream);
-            var hex = ToHex(hash);
+            var hex = HexConverter.Convert(hash);
             
             if (hashes.TryGetValue(hex, out var files))
             {
@@ -103,16 +102,5 @@ public class PackService : IPackService
         }
 
         _logger.LogInformation("Unpacking complete");
-    }
-
-    private static string ToHex(byte[] bytes)
-    {
-        var builder = new StringBuilder();
-        for (var i = 0; i < bytes.Length; i++)
-        {
-            builder.Append($"{bytes[i]:x2}");
-        }
-
-        return builder.ToString();
     }
 }
