@@ -38,11 +38,11 @@ public class PackService : IPackService
             
             if (hashes.TryGetValue(hex, out var files))
             {
-                files.Add(file);
+                files.Add(relativePath);
             }
             else
             {
-                hashes[hex] = new List<string> { file };
+                hashes[hex] = new List<string> { relativePath };
             }
         }
 

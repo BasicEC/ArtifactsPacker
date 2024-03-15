@@ -27,5 +27,10 @@ public class HashCalculationTest
         service.Hashes!.Count.Should().Be(2);
         service.Hashes["e00ca641d60d9473686d6c5b5fb67a7b"].Should().HaveCount(3);
         service.Hashes["427a39f4a46108dcbf441fb0f827baca"].Should().HaveCount(1);
+        foreach (var filePath in service.Hashes.Values.SelectMany(_ => _))
+        {
+            filePath.Should().NotContain("TestFiles");
+            filePath.Should().NotContain("PackTestIn");
+        }
     }
 }
