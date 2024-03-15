@@ -1,4 +1,5 @@
-﻿using ArtifactsPacker.Commands;
+﻿using System.Security.Cryptography;
+using ArtifactsPacker.Commands;
 using ArtifactsPacker.Commands.Validation;
 using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
@@ -12,6 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCommand(this IServiceCollection services, IVerb verb)
     {
         services.AddScoped<IPackService, PackService>();
+        services.AddScoped<HashAlgorithm>(_ => SHA256.Create());
 
         return verb switch
         {

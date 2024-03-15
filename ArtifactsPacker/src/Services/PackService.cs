@@ -13,15 +13,19 @@ public class PackService : IPackService
     private readonly IFileSystemWriter _fileSystemWriter;
     private readonly IFileSystemReader _fileSystemReader;
     private readonly ILogger<PackService> _logger;
+    private readonly HashAlgorithm _hashAlgorithm;
 
     internal IReadOnlyDictionary<string, List<string>>? Hashes;
 
-    public PackService(IFileSystemWriter fileSystemWriter, IFileSystemReader fileSystemReader,
-        ILogger<PackService> logger)
+    public PackService(IFileSystemWriter fileSystemWriter,
+        IFileSystemReader fileSystemReader,
+        ILogger<PackService> logger,
+        HashAlgorithm hashAlgorithm)
     {
         _fileSystemWriter = fileSystemWriter;
         _fileSystemReader = fileSystemReader;
         _logger = logger;
+        _hashAlgorithm = hashAlgorithm;
     }
 
     public async Task CalcHashesAsync(string sourcePath)
@@ -32,8 +36,7 @@ public class PackService : IPackService
         {
             var relativePath = file[basePathLen..];
             await using var stream = _fileSystemReader.OpenRead(sourcePath, relativePath);
-            var md5 = MD5.Create();
-            var hash = await md5.ComputeHashAsync(stream);
+            var hash = await _hashAlgorithm.ComputeHashAsync(stream);
             var hex = ToHex(hash);
             
             if (hashes.TryGetValue(hex, out var files))

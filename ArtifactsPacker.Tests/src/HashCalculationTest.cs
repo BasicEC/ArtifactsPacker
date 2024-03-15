@@ -1,4 +1,5 @@
-﻿using ArtifactsPacker.FileSystem;
+﻿using System.Security.Cryptography;
+using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,13 +21,13 @@ public class HashCalculationTest
     [Test]
     public void HashesAreEqualForTheSameFiles()
     {
-        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance);
+        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance, SHA256.Create());
         service.CalcHashesAsync("TestFiles/PackTestIn").GetAwaiter().GetResult();
 
         service.Hashes.Should().NotBeEmpty();
         service.Hashes!.Count.Should().Be(2);
-        service.Hashes["e00ca641d60d9473686d6c5b5fb67a7b"].Should().HaveCount(3);
-        service.Hashes["427a39f4a46108dcbf441fb0f827baca"].Should().HaveCount(1);
+        service.Hashes["c3e5a163ff8e90377138cfa256135ee404be457e30edf81c0772efc3d36a8fe3"].Should().HaveCount(3);
+        service.Hashes["d6c2eff2362d1257c6978ff37621819cb001745f698ba58f88d07cfec8ed0e2b"].Should().HaveCount(1);
         foreach (var filePath in service.Hashes.Values.SelectMany(_ => _))
         {
             filePath.Should().NotContain("TestFiles");
