@@ -10,21 +10,19 @@ namespace ArtifactsPacker;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddCommand(this IServiceCollection services, IVerb verb)
-    {
-        services.AddScoped<IPackService, PackService>();
-        services.AddScoped<HashAlgorithm>(_ => SHA256.Create());
-
-        return verb switch
+    public static IServiceCollection AddCommand(this IServiceCollection services, IVerb verb) =>
+        verb switch
         {
             PackVerb packVerb => services.AddPackCommand(packVerb),
             UnpackVerb unpackVerb => services.AddUnpackCommand(unpackVerb),
             _ => throw new ArgumentOutOfRangeException(nameof(verb)),
         };
-    }
 
     private static IServiceCollection AddPackCommand(this IServiceCollection services, PackVerb verb)
     {
+        services.AddScoped<IPackService, PackService>();
+        services.AddScoped<HashAlgorithm>(_ => SHA256.Create());
+
         var archiveResult = verb.Archive > 0;
         services.AddScoped<ICommand>(p =>
             new PackCommand(verb.Src,
@@ -48,11 +46,13 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddUnpackCommand(this IServiceCollection services, UnpackVerb verb)
     {
+        services.AddScoped<IUnpackService, UnpackService>();
+
         var readFromArchive = verb.Archive > 0;
         services.AddScoped<ICommand>(p =>
             new UnpackCommand(verb.Src,
                 verb.Trg,
-                p.GetRequiredService<IPackService>(),
+                p.GetRequiredService<IUnpackService>(),
                 new UnpackCommandValidator(readFromArchive)));
 
         services.AddScoped<IFileSystemWriter, PhysicalFileSystem>();

@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using ArtifactsPacker.FileSystem;
+﻿using ArtifactsPacker.FileSystem;
 using ArtifactsPacker.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -10,7 +9,6 @@ public class UnpackTest
     private DirectoryInfo OutDir { get; set; } = null!;
     private IFileSystemWriter _fileSystemWriter = null!;
     private IFileSystemReader _fileSystemReader = null!;
-
 
     [SetUp]
     public void SetUp()
@@ -30,7 +28,7 @@ public class UnpackTest
     public void Unpack()
     {
         // arrange
-        var service = new PackService(_fileSystemWriter, _fileSystemReader, NullLogger<PackService>.Instance, SHA256.Create());
+        var service = new UnpackService(NullLogger<UnpackService>.Instance, _fileSystemReader, _fileSystemWriter);
         const string src = "TestFiles/UnpackTestIn";
         var expectedFiles = new Dictionary<string, string>
         {

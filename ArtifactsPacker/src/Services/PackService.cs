@@ -75,32 +75,4 @@ public class PackService : IPackService
 
         _logger.LogInformation("Packing complete");
     }
-
-    public async Task UnpackAsync(string sourcePath, string targetPath)
-    {
-        _logger.LogInformation("Start unpacking");
-
-        Dictionary<string, string[]>? map;
-        await using (var mapFile = _fileSystemReader.OpenRead(sourcePath, FilesMapName))
-        {
-            map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapFile);
-        }
-
-        if (map == null)
-        {
-            throw new Exception($"{FilesMapName} is corrupted");
-        }
-
-        foreach (var (hash, files) in map)
-        {
-            foreach (var file in files)
-            {
-                await using var src = _fileSystemReader.OpenRead(sourcePath, hash);
-                await using var trg = _fileSystemWriter.Create(targetPath, file);
-                await src.CopyToAsync(trg);
-            }
-        }
-
-        _logger.LogInformation("Unpacking complete");
-    }
 }
